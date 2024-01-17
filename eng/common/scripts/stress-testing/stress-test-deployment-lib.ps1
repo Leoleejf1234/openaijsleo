@@ -321,7 +321,20 @@ function DeployStressPackage(
     $generatedConfigPath = Join-Path $pkg.Directory generatedValues.yaml
     $subCommand = $Template ? "template" : "upgrade"
     $subCommandFlag = $Template ? "--debug" : "--install"
-    $helmCommandArg = "helm", $subCommand, $releaseName, $pkg.Directory, "-n", $pkg.Namespace, $subCommandFlag, "--values", $generatedConfigPath, "--set", "stress-test-addons.env=$environment"
+    $helmCommandArg = @(
+        "helm", $subCommand, $releaseName, $pkg.Directory,
+        "-n", $pkg.Namespace,
+        $subCommandFlag,
+        "--values", $generatedConfigPath,
+        "--set", "stress-test-addons.env=$environment"
+    )
+
+    Push-Location $pkg.Directory
+    $gitCommit = git rev-parse HEAD 2>&1
+    Pop-Location
+    if (!$LASTEXITCODE) {
+        $helmCommandArg += "--set", "GitCommit=$gitCommit"
+    }
 
     if ($LockDeletionForDays) {
         $date = (Get-Date).AddDays($LockDeletionForDays).ToUniversalTime()
