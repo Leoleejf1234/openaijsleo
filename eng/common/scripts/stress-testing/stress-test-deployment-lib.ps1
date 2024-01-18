@@ -329,9 +329,7 @@ function DeployStressPackage(
         "--set", "stress-test-addons.env=$environment"
     )
 
-    Push-Location $pkg.Directory
-    $gitCommit = git rev-parse HEAD 2>&1
-    Pop-Location
+    $gitCommit = git --git-dir $pkg.Directory rev-parse HEAD 2>&1
     if (!$LASTEXITCODE) {
         $helmCommandArg += "--set", "GitCommit=$gitCommit"
     }
